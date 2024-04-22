@@ -3,21 +3,18 @@ version: '3.3'
 services:
   yelb-ui:
     image: mreferre/yelb-ui:0.7
-    ports:
-      - 8045:80
+    expose:
+      - "80"
     networks:
       - yelb-network
-    depends_on:
-      - yelb-appserver
-    restart: always
 
   yelb-appserver:
     image: mreferre/yelb-appserver:0.5
     ports:
-     - 4567:4567
+      - "4567:4567"
     depends_on:
       - yelb-db
-      - redis-server
+      - redis
     networks:
       - yelb-network
 
@@ -25,66 +22,66 @@ services:
     image: mreferre/yelb-db:0.5
     networks:
       - yelb-network
-    volumes:
+    volume:
       - local:/var/lib/postgresql/data
-
   odilia-db-replication01:
     image: mreferre/yelb-db:0.5
     networks:
       - yelb-network
-    volumes:
-      - local-0:/var/lib/postgresql/data
+    volume:
+      - local:/var/lib/postgresql/data
 
   odilia-db-replication02:
     image: mreferre/yelb-db:0.5
     networks:
       - yelb-network
-    volumes:
-      - local-1:/var/lib/postgresql/data
+    volume:
+      - local:/var/lib/postgresql/data
 
   odilia-db-replication03:
     image: mreferre/yelb-db:0.5
     networks:
       - yelb-network
-    volumes:
-      - local-2:/var/lib/postgresql/data
+    volume:
+      - local:/var/lib/postgresql/data
 
-  redis-server:
+  redis:
     image: redis:4.0.2
     ports:
-      - 6379:6379
+      - "6379:6379"
     volumes:
-      - redis-server:/etc/redis/redis.conf
-    command: redis-server /etc/redis/redis.conf
+      - ./redis-server.conf:/etc/redis/redis.conf
+    command: ["redis-server", "/etc/redis/redis.conf"]
     networks:
       - yelb-network
-
   odilia-redis01:
     image: redis:4.0.2
+    ports:
+      - "6379:6379"
     volumes:
-      - odilia-redis01:/etc/redis/redis.conf
-    command: redis-server /etc/redis/redis.conf
+      - ./odilia-redis01.conf:/etc/redis/redis.conf
+    command: ["redis-server", "/etc/redis/redis.conf"]
     networks:
       - yelb-network
-
   odilia-redis02:
     image: redis:4.0.2
+    ports:
+      - "6379:6379"
     volumes:
-      - odilia-redis02:/etc/redis/redis.conf
-    command: redis-server /etc/redis/redis.conf
+      - ./odilia-redis02.conf:/etc/redis/redis.conf
+    command: ["redis-server", "/etc/redis/redis.conf"]
     networks:
       - yelb-network
-
   odilia-redis-sentinel01:
     image: redis:4.0.2
     ports:
-      - 26379:26379  
+      - "26379:26379"  
     volumes:
-      - odilia-redis-sentinel01:/etc/redis/sentinel.conf
-    command: redis-sentinel /etc/redis/sentinel.conf
+      - ./Odilia-redis-sentinel01:/etc/redis/sentinel.conf
+    command: ["redis-sentinel", "/etc/redis/sentinel.conf"]
     networks:
       - yelb-network
-    depends_on:
+  depends_on:
       - redis-server
       - odilia-redis01
       - odilia-redis02
@@ -92,10 +89,10 @@ services:
   odilia-redis-sentinel02:
     image: redis:4.0.2
     ports:
-      - 26380:26379  # Change the port if necessary
+      - "26380:26379"  # Change the port if necessary
     volumes:
-      - odilia-redis-sentinel02:/etc/redis/sentinel.conf
-    command: redis-sentinel /etc/redis/sentinel.conf
+      - ./Odilia-redis-sentinel02:/etc/redis/sentinel.conf
+    command: ["redis-sentinel", "/etc/redis/sentinel.conf"]
     networks:
       - yelb-network
     depends_on:
@@ -106,31 +103,25 @@ services:
   odilia-redis-sentinel03:
     image: redis:4.0.2
     ports:
-      - 26381:26379  # Change the port if necessary
+      - "26381:26379"  # Change the port if necessary
     volumes:
-      - odilia-redis-sentinel03:/etc/redis/sentinel.conf
-    command: redis-sentinel /etc/redis/sentinel.conf
+      - ./Odilia-redis-sentinel03:/etc/redis/sentinel.conf
+    command: ["redis-sentinel", "/etc/redis/sentinel.conf"]
     networks:
       - yelb-network
     depends_on:
       - redis-server
       - odilia-redis01
       - odilia-redis02
-
+      
 networks:
   yelb-network:
     driver: bridge
 
 volumes:
-  local:
+  yelb-data:
     driver: local
-  local-0:
-    driver: local
-  local-1: 
-    driver: local
-  local-2:
-    driver: local
-  redis-server:
+  redis:
     driver: local
   odilia-redis01:
     driver: local
@@ -142,3 +133,5 @@ volumes:
     driver: local
   odilia-redis-sentinel03:
     driver: local
+
+
